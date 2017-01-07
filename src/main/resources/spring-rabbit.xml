@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/rabbit
+    http://www.springframework.org/schema/rabbit/spring-rabbit-1.4.xsd">
+    <!-- spring-rabbit.xsd的版本要注意,很1.4以前很多功能都没有,要用跟jar包匹配的版本 -->
+    
+	<bean id="jsonMessageConverter" class="org.springframework.amqp.support.converter.Jackson2JsonMessageConverter" />
+
+	<rabbit:connection-factory 
+		id="connectionFactory"
+		host="${rabbit.host}" 
+		port="${rabbit.port}" 
+		username="${rabbit.username}" 
+		password="${rabbit.password}"
+		publisher-confirms="true" 
+	/>
+
+	<rabbit:admin connection-factory="connectionFactory" />
+
+	<!-- 给模板指定转换器 -->
+	<rabbit:template id="amqpTemplate"	connection-factory="connectionFactory" 
+		confirm-callback="confirmCallBackListener"
+		return-callback="returnCallBackListener" 
+		mandatory="true" <!-- 这里必须设置true,return callback才生效 -->
+	/>
+	
+	<rabbit:queue name="CONFIRM_TEST" />
+		
+		
+	<rabbit:direct-exchange name="DIRECT_EX" id="DIRECT_EX" >
+		<rabbit:bindings>
+			<rabbit:binding queue="CONFIRM_TEST" />
+		</rabbit:bindings>
+	</rabbit:direct-exchange>
+
+	<!-- 配置consumer, 监听的类和queue的对应关系 -->
+	<rabbit:listener-container
+		connection-factory="connectionFactory" acknowledge="manual" >
+		<rabbit:listener queues="CONFIRM_TEST" ref="receiveConfirmTestListener" />
+	</rabbit:listener-container>
+
+</beans>
