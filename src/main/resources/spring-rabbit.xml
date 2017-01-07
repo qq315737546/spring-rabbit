@@ -20,15 +20,14 @@
 
 	<rabbit:admin connection-factory="connectionFactory" />
 
-	<!-- 给模板指定转换器 -->
+	<!-- 给模板指定转换器 --><!-- mandatory必须设置true,return callback才生效 -->
 	<rabbit:template id="amqpTemplate"	connection-factory="connectionFactory" 
 		confirm-callback="confirmCallBackListener"
 		return-callback="returnCallBackListener" 
-		mandatory="true" <!-- 这里必须设置true,return callback才生效 -->
+		mandatory="true" 
 	/>
 	
 	<rabbit:queue name="CONFIRM_TEST" />
-		
 		
 	<rabbit:direct-exchange name="DIRECT_EX" id="DIRECT_EX" >
 		<rabbit:bindings>
