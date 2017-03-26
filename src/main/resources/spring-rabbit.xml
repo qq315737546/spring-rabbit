@@ -34,11 +34,31 @@
 			<rabbit:binding queue="CONFIRM_TEST" />
 		</rabbit:bindings>
 	</rabbit:direct-exchange>
+	
+	<!-- 死信队列 -->
+	<rabbit:queue name="dead-letter-queue">
+		<rabbit:queue-arguments>
+			<entry key="x-message-ttl" value="5000" value-type="java.lang.Long" />
+			<entry key="x-dead-letter-exchange" value="common-exchange" />
+			<entry key="x-dead-letter-routing-key" value="common-queue" />
+		</rabbit:queue-arguments>
+	</rabbit:queue>
+	
+	<!-- 死信队列转发到的普通队列 -->
+	<rabbit:queue name="common-queue" />
+	<rabbit:direct-exchange name="common-exchange"
+		durable="false" auto-delete="false" id="common-exchange">
+		<rabbit:bindings>
+			<rabbit:binding queue="common-queue" />
+		</rabbit:bindings>
+	</rabbit:direct-exchange>
+	
 
 	<!-- 配置consumer, 监听的类和queue的对应关系 -->
 	<rabbit:listener-container
 		connection-factory="connectionFactory" acknowledge="manual" >
 		<rabbit:listener queues="CONFIRM_TEST" ref="receiveConfirmTestListener" />
+		<rabbit:listener queues="common-queue" ref="receiveConfirmTestListener" />
 	</rabbit:listener-container>
 
 </beans>
